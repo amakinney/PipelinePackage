@@ -1,0 +1,80 @@
+---
+title: "Analysis_MD"
+author: "Amanda Kinney"
+date: "8/23/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, eval = FALSE}
+library(ggplot2)
+
+my_penguins <- load(file = "my_penguins.rda")
+data_clean <- na.omit(my_penguins %>% select(species, body_mass_g, bill_length_mm, 
+                                  bill_depth_mm, flipper_length_mm))
+data_use <- data_clean %>% select(body_mass_g, bill_length_mm, 
+                                  bill_depth_mm, flipper_length_mm)
+
+source("my_rf_cv2.R")
+my_rf_cv <- function(k) {
+  
+  folds <- sample(rep(1:k, length = nrow(data_cleaned)))
+  
+  for(i in 1:30) {
+    for (i in 1:k) {
+      
+      data_training <- data_cleaned %>% filter(folds != i)
+      data_testing <- data_cleaned %>% filter(folds == i)
+      
+      modele <- randomForest(body_mass_g ~ bill_length_mm + bill_depth_mm +
+                               flipper_length_mm, data = data_training, ntree = 100)
+      
+      predic <- predict(modele, data_testing[, -1])
+      
+      MSE <- (predic - data_cleaned$body_mass_g[i])^2
+    }
+    
+    
+  }
+  
+  
+  avg_MSE <- sum(MSE) / k
+  
+  return(avg_MSE)
+  
+}
+
+f1 <- ggplot(data = data_cleaned, 
+       aes(x = bill_length_mm, y = body_mass_g)) +
+  geom_boxplot(fill = "lightgreen") 
+
+f2 <- ggplot(data = data_cleaned, 
+       aes(x = bill_depth_mm, y = body_mass_g)) +
+  geom_boxplot(fill = "lightgreen")
+
+f3 <- ggplot(data = data_cleaned, 
+       aes(x = flipper_length_mm, y = body_mass_g)) +
+  geom_boxplot(fill = "lightgreen")
+
+my_table <- matrix(rep(3, times = 6), ncol = 2, byrow = TRUE)
+colnames(my_table) <- c("Mean", "SD")
+rownames(my_table) <- c("k = 2", "k = 5", "k = 10")
+my_table
+
+ggsave(f1, path = PipelinePackage/Output/Figures)
+
+ggsave(f2, path = PipelinePackage/Output/Figures)
+
+ggsave(f5, path = PipelinePackage/Output/Figures)
+
+saveRDS(my_table, file = "Results")
+
+write.csv(my_table, file = "Results")
+
+
+```
+
